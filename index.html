@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KìñgFX Trade Journal — Firebase</title>
+  <style>
+    :root{--bg:#0b0b0b;--card:#111111;--muted:#bdbdbd;--accent:#e50914;--glass: rgba(255,255,255,0.03);}html,body{height:100%;}body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:var(--bg);color:#fff;line-height:1.4;-webkit-font-smoothing:antialiased;}header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.04);position:sticky;top:0;background:linear-gradient(180deg, rgba(0,0,0,0.6), transparent);z-index:10}.brand{display:flex;align-items:center;gap:12px}.logo{width:48px;height:48px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#111);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:18px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}h1{font-size:18px;margin:0}header .actions{display:flex;gap:8px;align-items:center}button.primary{background:var(--accent);border:0;padding:8px 12px;border-radius:8px;color:#fff;cursor:pointer}button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}.wrap{display:grid;grid-template-columns:360px 1fr;gap:18px;padding:20px;max-width:1200px;margin:18px auto}.card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(0,0,0,0.6);border:1px solid rgba(255,255,255,0.02)}.field{display:flex;flex-direction:column;margin-bottom:12px}label{font-size:13px;color:var(--muted);margin-bottom:6px}input[type=text], input[type=date], input[type=number], select, textarea{background:var(--glass);border:1px solid rgba(255,255,255,0.04);padding:10px;border-radius:8px;color:#fff;outline:none}textarea{min-height:84px;resize:vertical}.row{display:flex;gap:10px}.row .field{flex:1}.img-upload{display:flex;gap:10px}.img-preview{width:100%;height:120px;border-radius:8px;background:#0a0a0a;border:1px dashed rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;overflow:hidden}.img-preview img{max-width:100%;max-height:100%;display:block}.small{font-size:12px;color:var(--muted)}table{width:100%;border-collapse:collapse;margin-top:8px}th,td{padding:10px;border-bottom:1px solid rgba(255,255,255,0.03);text-align:left;font-size:13px}th{color:var(--muted);font-weight:600}td .thumb{width:72px;height:48px;object-fit:cover;border-radius:6px}.actions-cell{display:flex;gap:6px}.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);z-index:40}.modal.open{display:flex}.modal .panel{width:920px;max-width:96%;background:linear-gradient(180deg,#0f0f0f,#0a0a0a);border-radius:12px;padding:18px}.modal .panel .images{display:flex;gap:12px}.modal .panel img{width:100%;border-radius:8px}.cols{display:grid;grid-template-columns:1fr 320px;gap:14px}.meta{background:transparent;padding:12px;border-left:1px solid rgba(255,255,255,0.03)}footer{max-width:1200px;margin:0 auto;padding:16px;color:var(--muted);font-size:13px}@media(max-width:900px){.wrap{grid-template-columns:1fr;}.cols{grid-template-columns:1fr}}  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">Kì</div>
+      <div>
+        <h1>KìñgFX Trade Journal (Firebase)</h1>
+        <div style="font-size:12px;color:var(--muted)">Black & Red — Hosted (Firestore + Storage)</div>
+      </div>
+    </div>
+    <div class="actions">
+      <select id="journalSelect" class="ghost" style="background:transparent;color:#fff;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06)"></select>
+      <button class="ghost" id="newJournalBtn">New Journal</button>
+      <button class="ghost" id="exportBtn">Export JSON</button>
+      <button class="ghost" id="clearBtn">Clear Current</button>
+      <button class="primary" id="addBtn">Add New Trade</button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card" id="entryCard">
+      <h3 style="margin-top:0">New Trade</h3>
+      <form id="tradeForm">
+        <div class="row">
+          <div class="field"><label>Date</label><input type="date" id="date" required></div>
+          <div class="field"><label>Pair</label><input type="text" id="pair" placeholder="EUR/USD or FX Vol 20" required></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>HTF Bias</label>
+            <select id="bias"><option>Neutral</option><option>Bullish</option><option>Bearish</option></select></div>
+          <div class="field"><label>POI (4H/1H)</label><input type="text" id="poi" placeholder="e.g. 1.1200 - 1.1250"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Inducement?</label>
+            <select id="inducement"><option>No</option><option>Yes</option></select>
+          </div>
+          <div class="field"><label>Risk $</label><input type="number" id="risk" min="0" step="0.01" placeholder="e.g. 10"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Stop Loss (SL)</label><input type="text" id="sl" placeholder="e.g. 1.1050"></div>
+          <div class="field"><label>Take Profit (TP)</label><input type="text" id="tp" placeholder="e.g. 1.1300"></div>
+        </div>
+
+        <div class="field">
+          <label>Before Image</label>
+          <div class="img-upload">
+            <div style="flex:1">
+              <div class="img-preview" id="beforePreview">Drop or click to upload<br><span class="small">Before trade chart</span></div>
+              <input type="file" id="beforeImg" accept="image/*" style="margin-top:6px">
+            </div>
+            <div style="flex:1">
+              <label>After Image</label>
+              <div class="img-preview" id="afterPreview">Drop or click to upload<br><span class="small">After trade chart</span></div>
+              <input type="file" id="afterImg" accept="image/*" style="margin-top:6px">
+            </div>
+          </div>
+        </div>
+
+        <div class="field"><label>Emotions (journal)</label><textarea id="emotions" placeholder="How did you feel before/during/after the trade?"></textarea></div>
+        <div class="field"><label>Improvement Notes (after win)</label><textarea id="improveWin" placeholder="What went well? What to repeat?"></textarea></div>
+        <div class="field"><label>Improvement Notes (after loss)</label><textarea id="improveLoss" placeholder="What to change? Risk controls? Entry discipline?"></textarea></div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+          <button type="submit" class="primary">Save Trade</button>
+          <button type="button" class="ghost" id="resetBtn">Reset Form</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top:0">Trade History</h3>
+      <div id="tableWrap">
+        <table id="tradesTable">
+          <thead>
+            <tr><th>Date</th><th>Pair</th><th>Bias</th><th>POI</th><th>Inducement</th><th>SL</th><th>TP</th><th>Risk $</th><th>Preview</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal" id="viewModal">
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div style="font-weight:700">Trade Detail</div>
+        <div><button class="ghost" id="closeModal">Close</button></div>
+      </div>
+      <div class="cols">
+        <div>
+          <div class="images">
+            <div style="flex:1">
+              <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Before</div>
+              <div style="height:320px;background:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden" id="modalBeforeWrap"></div>
+            </div>
+            <div style="width:320px">
+              <div style="font-size:13px;color:var(--muted);margin-bottom:6px">After</div>
+              <div style="height:320px;background:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;overflow:hidden" id="modalAfterWrap"></div>
+            </div>
+          </div>
+        </div>
+        <div class="meta">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Meta</div>
+          <div id="metaList"></div>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Emotions</div>
+          <div id="metaEmo" style="white-space:pre-wrap"></div>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Improvement (Win)</div>
+          <div id="metaWin" style="white-space:pre-wrap"></div>
+          <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">Improvement (Loss)</div>
+          <div id="metaLoss" style="white-space:pre-wrap"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Tip: This version saves trades (and images) to Firebase. Paste your firebaseConfig in the code where indicated, enable Firestore & Storage (Test Mode while setting up), then deploy to Vercel.
+  </footer>
+
+  <!-- Firebase (compat) SDKs -->
+  <!-- Replace these with the latest versions if desired -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+  <script>
+    // 🔥 PASTE your Firebase config below (from Project Overview -> Add web app)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDd_a9dC82k838eah_YQyMy3UvBe-KkxRQ",
+      authDomain: "http://kingfx-journal-web.firebaseapp.com",
+      projectId: "kingfx-journal-web",
+      storageBucket: "http://kingfx-journal-web.firebasestorage.app",
+      messagingSenderId: "791702759031",
+      appId: "1:791702759031:web:97855a570a9a0a799cc872",
+      measurementId: "G-H502G3YQ41"
+
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+     const db = firebase.firestore(); 
+     const storage = firebase.storage();
+   
+
+    // UI helpers
+    const qs = s => document.querySelector(s);
+    const qsa = s => document.querySelectorAll(s);
+
+    // Elements
+    const form = qs('#tradeForm');
+    const tableBody = qs('#tradesTable tbody');
+    const exportBtn = qs('#exportBtn');
+    const clearBtn = qs('#clearBtn');
+    const resetBtn = qs('#resetBtn');
+    const addBtn = qs('#addBtn');
+    const journalSelect = qs('#journalSelect');
+    const newJournalBtn = qs('#newJournalBtn');
+
+    const beforeInput = qs('#beforeImg');
+    const afterInput = qs('#afterImg');
+    const beforePreview = qs('#beforePreview');
+    const afterPreview = qs('#afterPreview');
+
+    const modal = qs('#viewModal');
+    const closeModal = qs('#closeModal');
+
+    // Current journal id
+    let currentJournalId = null;
+
+    // Utilities
+    function escapeHtml(str){ return String(str||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+    function readFileAsDataURL(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); }) }
+
+    // Image preview handlers (same as local version)
+    beforeInput.addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return beforePreview.innerHTML='Drop or click to upload<br><span class="small">Before trade chart</span>'; const data=await readFileAsDataURL(f); beforePreview.innerHTML=''; const img=document.createElement('img'); img.src=data; beforePreview.appendChild(img); beforePreview.dataset.fileName = f.name; beforePreview.dataset.file = true; beforePreview.dataset.data = data; })
+    afterInput.addEventListener('change', async e=>{ const f=e.target.files[0]; if(!f) return afterPreview.innerHTML='Drop or click to upload<br><span class="small">After trade chart</span>'; const data=await readFileAsDataURL(f); afterPreview.innerHTML=''; const img=document.createElement('img'); img.src=data; afterPreview.appendChild(img); afterPreview.dataset.fileName = f.name; afterPreview.dataset.file = true; afterPreview.dataset.data = data; })
+
+    // Drag & drop (basic)
+    [beforePreview].forEach(el=>{ el.addEventListener('dragover', e=>{ e.preventDefault(); el.style.opacity=0.9 }); el.addEventListener('dragleave', e=>{ el.style.opacity=1 }); el.addEventListener('drop', async e=>{ e.preventDefault(); el.style.opacity=1; const f=e.dataTransfer.files[0]; if(!f) return; const data = await readFileAsDataURL(f); el.innerHTML=''; const img=document.createElement('img'); img.src=data; el.appendChild(img); beforeInput.files = e.dataTransfer.files; el.dataset.data = data; el.dataset.file = true; el.dataset.fileName = f.name; }) })
+    [afterPreview].forEach(el=>{ el.addEventListener('dragover', e=>{ e.preventDefault(); el.style.opacity=0.9 }); el.addEventListener('dragleave', e=>{ el.style.opacity=1 }); el.addEventListener('drop', async e=>{ e.preventDefault(); el.style.opacity=1; const f=e.dataTransfer.files[0]; if(!f) return; const data = await readFileAsDataURL(f); el.innerHTML=''; const img=document.createElement('img'); img.src=data; el.appendChild(img); afterInput.files = e.dataTransfer.files; el.dataset.data = data; el.dataset.file = true; el.dataset.fileName = f.name; }) })
+
+    // --- Journals management ---
+    async function loadJournals(){
+      journalSelect.innerHTML = '';
+      journalSelect.appendChild(new Option('Select Journal', ''));
+      const snap = await db.collection('journals').orderBy('createdAt','desc').get();
+      snap.forEach(doc=>{ const d = doc.data(); const opt = new Option(d.name || doc.id, doc.id); journalSelect.appendChild(opt); });
+    }
+
+    newJournalBtn.addEventListener('click', async ()=>{
+      const name = prompt('New journal name (e.g. Q4-2025, Season 3):');
+      if(!name) return;
+      const docRef = await db.collection('journals').add({name,createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+      await loadJournals();
+      journalSelect.value = docRef.id; currentJournalId = docRef.id; renderTable();
+      alert('New journal created ✅');
+    })
+
+    journalSelect.addEventListener('change', ()=>{
+      currentJournalId = journalSelect.value || null; renderTable();
+    })
+
+    // Save trade: uploads images to storage then save data to Firestore under journals/{journalId}/trades
+    form.addEventListener('submit', async e=>{
+      e.preventDefault();
+      if(!currentJournalId){ alert('Please select or create a journal first.'); return; }
+      const date = qs('#date').value;
+      const pair = qs('#pair').value.trim();
+      const bias = qs('#bias').value;
+      const poi = qs('#poi').value.trim();
+      const inducement = qs('#inducement').value;
+      const sl = qs('#sl').value.trim();
+      const tp = qs('#tp').value.trim();
+      const risk = qs('#risk').value;
+      const emotions = qs('#emotions').value.trim();
+      const improveWin = qs('#improveWin').value.trim();
+      const improveLoss = qs('#improveLoss').value.trim();
+
+      const tradeDocRef = db.collection('journals').doc(currentJournalId).collection('trades').doc();
+      const id = tradeDocRef.id;
+
+      // Prepare promises
+      const uploadPromises = [];
+      const tradeData = {id,date,pair,bias,poi,inducement,sl,tp,risk,emotions,improveWin,improveLoss,createdAt: firebase.firestore.FieldValue.serverTimestamp(), beforeUrl: null, afterUrl: null};
+
+      // Before image
+      if(beforeInput.files[0]){
+        const file = beforeInput.files[0];
+        const path = `journals/${currentJournalId}/trades/${id}/before_${Date.now()}_${file.name}`;
+        const storageRef = storage.ref().child(path);
+        uploadPromises.push(storageRef.put(file).then(() => storageRef.getDownloadURL().then(url => { tradeData.beforeUrl = url; })) );
+      } else if(beforePreview.dataset.data){
+        // We have dataURL in preview; upload via putString
+        const dataUrl = beforePreview.dataset.data;
+        const path = `journals/${currentJournalId}/trades/${id}/before_${Date.now()}.png`;
+        const storageRef = storage.ref().child(path);
+        uploadPromises.push(storageRef.putString(dataUrl, 'data_url').then(()=> storageRef.getDownloadURL().then(url=> { tradeData.beforeUrl = url; })));
+      }
+
+      // After image
+      if(afterInput.files[0]){
+        const file = afterInput.files[0];
+        const path = `journals/${currentJournalId}/trades/${id}/after_${Date.now()}_${file.name}`;
+        const storageRef = storage.ref().child(path);
+        uploadPromises.push(storageRef.put(file).then(() => storageRef.getDownloadURL().then(url => { tradeData.afterUrl = url; })) );
+      } else if(afterPreview.dataset.data){
+        const dataUrl = afterPreview.dataset.data;
+        const path = `journals/${currentJournalId}/trades/${id}/after_${Date.now()}.png`;
+        const storageRef = storage.ref().child(path);
+        uploadPromises.push(storageRef.putString(dataUrl, 'data_url').then(()=> storageRef.getDownloadURL().then(url=> { tradeData.afterUrl = url; })));
+      }
+
+      // Wait uploads
+      try{
+        await Promise.all(uploadPromises);
+        await tradeDocRef.set(tradeData);
+        alert('Trade saved to Firebase ✅');
+        form.reset(); beforePreview.innerHTML = 'Drop or click to upload<br><span class="small">Before trade chart</span>'; afterPreview.innerHTML = 'Drop or click to upload<br><span class="small">After trade chart</span>'; delete beforePreview.dataset.data; delete afterPreview.dataset.data;
+        renderTable();
+      }catch(err){ console.error(err); alert('Error saving trade: '+err.message); }
+    })
+
+    // Render trades for current journal
+    async function renderTable(){
+      tableBody.innerHTML = '';
+      if(!currentJournalId){ tableBody.innerHTML = '<tr><td colspan="10" style="color:var(--muted);padding:18px;text-align:center">Select a journal to view trades.</td></tr>'; return; }
+      const snap = await db.collection('journals').doc(currentJournalId).collection('trades').orderBy('createdAt','desc').get();
+      if(snap.empty){ tableBody.innerHTML = '<tr><td colspan="10" style="color:var(--muted);padding:18px;text-align:center">No trades yet — add your first trade.</td></tr>'; return; }
+      snap.forEach(doc=>{
+        const trade = doc.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(trade.date||'')}</td>
+          <td>${escapeHtml(trade.pair||'')}</td>
+          <td>${escapeHtml(trade.bias||'')}</td>
+          <td>${escapeHtml(trade.poi||'')}</td>
+          <td>${escapeHtml(trade.inducement||'')}</td>
+          <td>${escapeHtml(trade.sl||'')}</td>
+          <td>${escapeHtml(trade.tp||'')}</td>
+          <td>${trade.risk!=null?trade.risk:''}</td>
+          <td>${trade.beforeUrl?'<img class="thumb" src="'+trade.beforeUrl+'">':'-'}</td>
+          <td class="actions-cell"><button class="ghost" onclick="viewTrade('${doc.id}')">View</button><button class="ghost" onclick="deleteTrade('${doc.id}')">Delete</button></td>
+        `;
+        tableBody.appendChild(tr);
+      })
+    }
+
+    // View trade modal
+    window.viewTrade = async function(id){
+      if(!currentJournalId) return;
+      const doc = await db.collection('journals').doc(currentJournalId).collection('trades').doc(id).get();
+      if(!doc.exists) return alert('Trade not found');
+      const t = doc.data();
+      qs('#modalBeforeWrap').innerHTML = t.beforeUrl ? `<img src="${t.beforeUrl}">` : '<div style="color:var(--muted)">No image</div>';
+      qs('#modalAfterWrap').innerHTML = t.afterUrl ? `<img src="${t.afterUrl}">` : '<div style="color:var(--muted)">No image</div>';
+      qs('#metaList').innerHTML = `
+        <div><strong>Date:</strong> ${t.date||''}</div>
+        <div><strong>Pair:</strong> ${escapeHtml(t.pair||'')}</div>
+        <div><strong>Bias:</strong> ${escapeHtml(t.bias||'')}</div>
+        <div><strong>POI:</strong> ${escapeHtml(t.poi||'')}</div>
+        <div><strong>Inducement:</strong> ${escapeHtml(t.inducement||'')}</div>
+        <div><strong>SL:</strong> ${escapeHtml(t.sl||'')}</div>
+        <div><strong>TP:</strong> ${escapeHtml(t.tp||'')}</div>
+        <div><strong>Risk $:</strong> ${t.risk!=null?t.risk:''}</div>
+      `;
+      qs('#metaEmo').textContent = t.emotions||'-';
+      qs('#metaWin').textContent = t.improveWin||'-';
+      qs('#metaLoss').textContent = t.improveLoss||'-';
+      modal.classList.add('open');
+    }
+
+    closeModal.addEventListener('click', ()=> modal.classList.remove('open'))
+
+    // Delete trade
+    window.deleteTrade = async function(id){ if(!confirm('Delete this trade?')) return; try{ await db.collection('journals').doc(currentJournalId).collection('trades').doc(id).delete(); renderTable(); }catch(err){console.error(err);alert('Error deleting: '+err.message);} }
+
+    // Export current journal as JSON
+    exportBtn.addEventListener('click', async ()=>{
+      if(!currentJournalId) return alert('Select a journal first');
+      const snap = await db.collection('journals').doc(currentJournalId).collection('trades').orderBy('createdAt','desc').get();
+      const arr = snap.docs.map(d=> ({id:d.id,...d.data()}));
+      const blob = new Blob([JSON.stringify(arr,null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download = `kingfx_journal_${currentJournalId}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    })
+
+    // Clear current journal (deletes all trades in that journal) - WARNING: destructive
+    clearBtn.addEventListener('click', async ()=>{
+      if(!currentJournalId) return alert('Select a journal first');
+      if(!confirm('Delete all trades in this journal? This action cannot be undone.')) return;
+      const snap = await db.collection('journals').doc(currentJournalId).collection('trades').get();
+      const batch = db.batch();
+      snap.forEach(doc=> batch.delete(doc.ref));
+      await batch.commit();
+      renderTable();
+    })
+
+    // Reset form
+    resetBtn.addEventListener('click', ()=>{ form.reset(); beforePreview.innerHTML = 'Drop or click to upload<br><span class="small">Before trade chart</span>'; afterPreview.innerHTML = 'Drop or click to upload<br><span class="small">After trade chart</span>'; delete beforePreview.dataset.data; delete afterPreview.dataset.data; })
+    addBtn.addEventListener('click', ()=>{ window.scrollTo({top:0,behavior:'smooth'}); qs('#date').focus(); })
+
+    // Initial load
+    (async function(){
+      try{ await loadJournals();
+        // If any journals exist, select the first
+        if(journalSelect.options.length>1){ journalSelect.selectedIndex = 1; currentJournalId = journalSelect.value; }
+        renderTable();
+      }catch(err){ console.error(err); alert('Error connecting to Firebase. Make sure your firebaseConfig is set and Firestore + Storage are enabled.'); }
+    })();
+  </script>
+</body>
+</html>
