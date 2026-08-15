@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#050816">
+  <title>KingFX Trade Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="#overview" aria-label="KingFX overview">
+      <span class="logo">K</span><span><b>King<span>FX</span></b><small>Trade Journal</small></span>
+    </a>
+    <nav aria-label="Main navigation">
+      <button class="nav-item active" data-view="overview"><span>⌂</span>Overview</button>
+      <button class="nav-item" data-view="journal"><span>＋</span>Journal</button>
+      <button class="nav-item" data-view="history"><span>↗</span>History</button>
+      <button class="nav-item" data-view="analytics"><span>⌁</span>Analytics</button>
+    </nav>
+    <div class="sidebar-foot"><span class="avatar">K</span><div><b>KingFX</b><small>Pro trader</small></div></div>
+  </aside>
+
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+      <div><h1 id="pageTitle">Overview</h1><p id="pageSubtitle">Your trading performance at a glance.</p></div>
+      <div class="top-actions"><span class="sync-state" id="syncState"><i></i> Live</span><button class="btn primary" data-open-journal>＋ New trade</button></div>
+    </header>
+
+    <main>
+      <section class="view active" id="overviewView">
+        <div class="welcome"><div><span class="eyebrow">PERFORMANCE COMMAND CENTER</span><h2>Good trading starts with <em>good data.</em></h2><p>Track the process. Respect the risk. Let the numbers reveal your edge.</p></div><button class="btn primary" data-open-journal>Record a trade →</button></div>
+        <div class="metric-grid" id="overviewMetrics"></div>
+        <div class="dashboard-grid">
+          <article class="panel chart-panel"><div class="panel-head"><div><span class="eyebrow">PERFORMANCE</span><h3>Equity curve</h3></div><div class="legend"><i></i>Cumulative P&amp;L</div></div><div class="chart-wrap"><canvas id="equityChart"></canvas><div class="empty-chart" id="chartEmpty">Add completed trades to build your curve.</div></div></article>
+          <article class="panel streak-panel"><div class="panel-head"><div><span class="eyebrow">MOMENTUM</span><h3>Streak monitor</h3></div><span class="status-pill" id="streakMood">No streak</span></div><div class="streak-current"><div class="ring" id="streakRing"><strong id="currentStreak">0</strong><span>trades</span></div><div><p id="streakLabel">Current streak</p><h4 id="streakHeadline">Waiting for data</h4><small id="streakAdvice">Log a result to begin streak tracking.</small></div></div><div class="streak-mini"><div><span>Longest win</span><strong class="positive" id="longestWin">0</strong></div><div><span>Longest loss</span><strong class="negative" id="longestLoss">0</strong></div><div><span>Avg. win streak</span><strong id="averageWin">0</strong></div><div><span>Avg. loss streak</span><strong id="averageLoss">0</strong></div></div></article>
+          <article class="panel recent-panel"><div class="panel-head"><div><span class="eyebrow">LATEST ACTIVITY</span><h3>Recent trades</h3></div><button class="text-btn" data-view-link="history">View all →</button></div><div class="trade-table" id="recentTrades"></div></article>
+          <article class="panel setup-panel"><div class="panel-head"><div><span class="eyebrow">EDGE FINDER</span><h3>Best performers</h3></div></div><div id="bestPerformers" class="performers"></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="journalView">
+        <form id="tradeForm" class="journal-layout">
+          <div class="form-main">
+            <article class="panel form-section"><div class="section-title"><span>01</span><div><h3>Trade details</h3><p>The essential numbers behind the position.</p></div></div><div class="form-grid">
+              <label>Date<input id="date" type="date" required></label><label>Pair<input id="pair" type="text" placeholder="e.g. XAUUSD" required></label>
+              <label>Direction<select id="direction"><option>Buy</option><option>Sell</option></select></label><label>Result<select id="result" required><option value="">Select result</option><option value="win">Win</option><option value="loss">Loss</option><option value="be">Break even</option></select></label>
+              <label>Risk ($)<input id="risk" type="number" min="0" step="0.01" placeholder="100" required></label><label>P&amp;L ($)<input id="pnl" type="number" step="0.01" placeholder="250" required></label><label>R:R<input id="rr" type="number" min="0" step="0.01" placeholder="2.5"></label><label>Session<select id="session"><option>London</option><option>New York</option><option>Asian</option><option>Overlap</option></select></label>
+            </div></article>
+            <article class="panel form-section"><div class="section-title"><span>02</span><div><h3>Execution &amp; psychology</h3><p>Capture the context that improves your process.</p></div></div><div class="form-grid">
+              <label>Setup<input id="setup" type="text" placeholder="MSS + OB + FVG"></label><label>Emotion<select id="emotion"><option>Calm</option><option>Confident</option><option>Anxious</option><option>FOMO</option><option>Frustrated</option></select></label><label>Confidence <output id="confidenceValue">7/10</output><input id="confidence" type="range" min="1" max="10" value="7"></label><label class="wide">Lessons / mistakes<textarea id="notes" rows="4" placeholder="What happened, what worked, what will you improve?"></textarea></label>
+            </div></article>
+            <article class="panel form-section"><div class="section-title"><span>03</span><div><h3>Trade media</h3><p>Add before and after screenshots.</p></div></div><div class="upload-grid"><label class="dropzone">Before screenshot<input id="beforeImg" type="file" accept="image/*"><span id="beforePreview">Drop or choose an image</span></label><label class="dropzone">After screenshot<input id="afterImg" type="file" accept="image/*"><span id="afterPreview">Drop or choose an image</span></label></div></article>
+          </div>
+          <aside class="form-side"><article class="panel sticky-card"><span class="eyebrow">TRADE CHECK</span><h3>Ready to journal?</h3><ul><li>Risk is within your plan</li><li>Result and P&amp;L agree</li><li>You documented the lesson</li></ul><div id="status" class="status" role="status"></div><button class="btn primary full" id="saveBtn" type="submit">Save trade</button><button class="btn ghost full" id="resetBtn" type="reset">Clear form</button></article></aside>
+        </form>
+      </section>
+
+      <section class="view" id="historyView"><article class="panel"><div class="panel-head"><div><span class="eyebrow">TRADE LEDGER</span><h3>History</h3></div><div class="filters"><select id="historyResult"><option value="all">All results</option><option value="win">Wins</option><option value="loss">Losses</option><option value="be">Break even</option></select><input id="historySearch" type="search" placeholder="Search pair or setup"></div></div><div class="history-list" id="historyContainer"></div></article></section>
+
+      <section class="view" id="analyticsView">
+        <div class="score-grid" id="scoreGrid"></div>
+        <div class="analytics-grid">
+          <article class="panel heatmap-panel"><div class="panel-head"><div><span class="eyebrow">DAILY DISCIPLINE</span><h3>Trading heatmap</h3></div><div class="heat-legend"><span><i class="loss"></i>Loss</span><span><i></i>No trade</span><span><i class="win"></i>Profit</span></div></div><div id="heatmap" class="heatmap"></div></article>
+          <article class="panel"><div class="panel-head"><div><span class="eyebrow">STREAK INTELLIGENCE</span><h3>Win &amp; loss analysis</h3></div></div><div id="streakAnalysis" class="analysis-list"></div></article>
+          <article class="panel insights-panel"><div class="panel-head"><div><span class="eyebrow">DATA-DRIVEN COACH</span><h3>Trading insights</h3></div></div><div id="insights" class="insights"></div></article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal" id="imageModal" aria-hidden="true"><button class="modal-close" aria-label="Close preview">×</button><img id="modalImage" alt="Trade screenshot preview"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="journal.js"></script>
+</body>
+</html>
